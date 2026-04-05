@@ -19,64 +19,69 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     
-    - name: Build JAR and Library
+    - name: Build JAR
       shell: pwsh
       run: |
-        # Tengeneza lib folder na pakua Gson
         New-Item -ItemType Directory -Force -Path desktop\lib
         Invoke-WebRequest -Uri "https://repo1.maven.org/maven2/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar" -OutFile "desktop\lib\gson-2.10.1.jar"
-        
-        # Compile Java
         cd desktop
         javac -cp "lib\gson-2.10.1.jar" -d . DesktopApp.java
-        
-        # Tengeneza JAR
         jar cvfe AlfarooqDesktop.jar DesktopApp *.class
-        cd ..
     
-    - name: Package EXE (Safe Mode)
+    - name: Run JPackage
       shell: pwsh
       run: |
-        # 1. Tenganisha INPUT na OUTPUT folders (Muhimu kuzuia loop)
+        # 1. Folda za kazi
         $IN = "C:\in_folder"
         $OUT = "C:\out_folder"
-        New-Item -Path $IN -ItemType "directory" -Force
-        New-Item -Path $OUT -ItemType "directory" -Force
+        New-Item -ItemType Directory -Force -Path $IN
+        New-Item -ItemType Directory -Force -Path $OUT
         
-        # 2. Nakili faili muhimu kwenda INPUT
+        # 2. Nakili faili
         Copy-Item "desktop\AlfarooqDesktop.jar" -Destination "$IN\"
-        Copy-Item "desktop\lib" -Destination "$IN\" -Recurse
+        if (Test-Path "desktop\lib") { Copy-Item -Path "desktop\lib" -Destination "$IN\" -Recurse }
         
-        # 3. BADILISHA PNG KUWA ICO (Windows EXE inahitaji .ico)
+        # 3. TENGENEZA ICON (.ico) KWA NJIA SALAMA
         Add-Type -AssemblyName System.Drawing
         $pngPath = "$Env:GITHUB_WORKSPACE\desktop\icons\app_icon.png"
-        $icoPath = "$IN\app_icon.ico"
+        $icoPath = "C:\in_folder\app_icon.ico"
         
         if (Test-Path $pngPath) {
             $bmp = [System.Drawing.Bitmap]::FromFile($pngPath)
-            $bmp.Save($icoPath, [System.Drawing.Imaging.ImageFormat]::Icon)
+            # Tunatengeneza icon rasmi
+            $hIcon = $bmp.GetHicon()
+            [System.Drawing.Icon]::FromHandle($hIcon).Save([System.IO.File]::Create($icoPath))
             $bmp.Dispose()
-            $iconArg = "--icon $icoPath"
+            Write-Host "Icon imetengenezwa: $icoPath"
+            
+            # Endesha jpackage PAMOJA na icon
+            jpackage --input "$IN" `
+              --name "AlfarooqApp" `
+              --main-jar "AlfarooqDesktop.jar" `
+              --main-class "DesktopApp" `
+              --type app-image `
+              --icon "$icoPath" `
+              --dest "$OUT"
         } else {
-            $iconArg = "" # Kama picha haipo, itatumia icon ya kawaida
+            Write-Host "Picha haijapatikana, tunajenga bila icon."
+            jpackage --input "$IN" `
+              --name "AlfarooqApp" `
+              --main-jar "AlfarooqDesktop.jar" `
+              --main-class "DesktopApp" `
+              --type app-image `
+              --dest "$OUT"
         }
         
-        # 4. Endesha jpackage
-        # Kumbuka: --input inasoma $IN, na --dest inaweka kwenye $OUT
-        jpackage --input "$IN" `
-          --name "AlfarooqApp" `
-          --main-jar "AlfarooqDesktop.jar" `
-          --main-class "DesktopApp" `
-          --type app-image `
-          $iconArg `
-          --dest "$OUT"
-        
-        # 5. Zip matokeo na yarudishe kwenye workspace ya GitHub
-        Compress-Archive -Path "$OUT\AlfarooqApp" -DestinationPath "$Env:GITHUB_WORKSPACE\AlfarooqApp.zip" -Force
+        # 4. Zip matokeo (Hakikisha folder lipo kwanza)
+        if (Test-Path "$OUT\AlfarooqApp") {
+            Compress-Archive -Path "$OUT\AlfarooqApp" -DestinationPath "$Env:GITHUB_WORKSPACE\AlfarooqApp.zip" -Force
+        } else {
+            Write-Error "JPackage haikutengeneza folder la AlfarooqApp!"
+            exit 1
+        }
         
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
         name: Alfarooq-Windows-Package
         path: AlfarooqApp.zip
-        retention-days: 30
