@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">阿尔法鲁克阿尔沙米时间表</string>
+    <string name="login">登录</string>
+    <string name="username">用户名</string>
+    <string name="password">密码</string>
+    <string name="sign_in">签到上班</string>
+    <string name="sign_out">签退下班</string>
+    <string name="break_start">开始休息</string>
+    <string name="break_end">结束休息</string>
+    <string name="delivery_go">去送货</string>
+    <string name="delivery_return">送货返回</string>
+    <string name="welcome">欢迎</string>
+    <string name="kitchen">厨房</string>
+    <string name="waiters">服务员</string>
+    <string name="delivery">配送</string>
+    <string name="managers">管理人员</string>
+    <string name="dashboard">仪表板</string>
+    <string name="logout">退出</string>
+    <string name="history">历史记录</string>
+    <string name="create_user">创建用户</string>
+    <string name="create_admin">创建管理员</string>
+    <string name="delete">删除</string>
+    <string name="location_error">您不允许签到！请确保您在工作地点。</string>
+    <string name="success">成功</string>
+    <string name="error">错误</string>
+    <string name="select_language">选择语言</string>
+    <string name="english">English</string>
+    <string name="swahili">Kiswahili</string>
+    <string name="arabic">العربية</string>
+    <string name="hindi">हिन्दी</string>
+    <string name="chinese">中文</string>
+</resources>

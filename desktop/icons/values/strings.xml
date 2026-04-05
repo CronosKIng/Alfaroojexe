@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AL FAROOJ AL SHAMI TIME TABLE</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="select_language">Select Language</string>
+    <string name="change_language">Change Language</string>
+    <string name="login">Login</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="welcome">Welcome</string>
+    <string name="logout">Logout</string>
+    <string name="history">History</string>
+    <string name="kitchen">Kitchen</string>
+    <string name="waiters">Waiters</string>
+    <string name="delivery">Delivery</string>
+    <string name="managers">Managers</string>
+</resources>

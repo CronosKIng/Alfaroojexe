@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">الجدول الزمني للفاروق الشامي</string>
+    <string name="navigation_drawer_open">فتح القائمة</string>
+    <string name="navigation_drawer_close">إغلاق القائمة</string>
+    <string name="select_language">اختر اللغة</string>
+    <string name="change_language">تغيير اللغة</string>
+    <string name="login">تسجيل الدخول</string>
+    <string name="username">اسم المستخدم</string>
+    <string name="password">كلمة المرور</string>
+    <string name="sign_in">تسجيل الدخول للعمل</string>
+    <string name="sign_out">تسجيل الخروج</string>
+    <string name="welcome">مرحباً</string>
+    <string name="logout">تسجيل خروج</string>
+    <string name="history">السجل</string>
+    <string name="kitchen">المطبخ</string>
+    <string name="waiters">النُدُل</string>
+    <string name="delivery">التوصيل</string>
+    <string name="managers">المديرون</string>
+</resources>
