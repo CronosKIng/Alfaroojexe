@@ -10,7 +10,8 @@ jobs:
     runs-on: windows-latest
     
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout Code
+      uses: actions/checkout@v4
     
     - name: Set up JDK 17
       uses: actions/setup-java@v4
@@ -18,46 +19,64 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     
-    - name: Prepare Application Files
+    - name: Build JAR and Library
       shell: pwsh
       run: |
-        # Unda folder la desktop/lib na pakua Gson
+        # Tengeneza lib folder na pakua Gson
         New-Item -ItemType Directory -Force -Path desktop\lib
         Invoke-WebRequest -Uri "https://repo1.maven.org/maven2/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar" -OutFile "desktop\lib\gson-2.10.1.jar"
         
-        # Compile na kutengeneza JAR
+        # Compile Java
         cd desktop
         javac -cp "lib\gson-2.10.1.jar" -d . DesktopApp.java
+        
+        # Tengeneza JAR
         jar cvfe AlfarooqDesktop.jar DesktopApp *.class
         cd ..
-
-    - name: Run JPackage (Safe Mode)
+    
+    - name: Package EXE (Safe Mode)
       shell: pwsh
       run: |
-        # TENGANISHA FOLDERS KUZUIA LOOP
-        New-Item -Path "C:\" -Name "in_folder" -ItemType "directory" -Force
-        New-Item -Path "C:\" -Name "out_folder" -ItemType "directory" -Force
+        # 1. Tenganisha INPUT na OUTPUT folders (Muhimu kuzuia loop)
+        $IN = "C:\in_folder"
+        $OUT = "C:\out_folder"
+        New-Item -Path $IN -ItemType "directory" -Force
+        New-Item -Path $OUT -ItemType "directory" -Force
         
-        # Nakili faili muhimu tu kwenda INPUT folder
-        Copy-Item "desktop/AlfarooqDesktop.jar" -Destination "C:\in_folder\"
-        Copy-Item "desktop/lib" -Destination "C:\in_folder\" -Recurse
+        # 2. Nakili faili muhimu kwenda INPUT
+        Copy-Item "desktop\AlfarooqDesktop.jar" -Destination "$IN\"
+        Copy-Item "desktop\lib" -Destination "$IN\" -Recurse
         
-        # Tengeneza EXE (Tumia 'exe' badala ya 'app-image' ili upate file moja la ku-install)
-        jpackage --input "C:\in_folder" `
+        # 3. BADILISHA PNG KUWA ICO (Windows EXE inahitaji .ico)
+        Add-Type -AssemblyName System.Drawing
+        $pngPath = "$Env:GITHUB_WORKSPACE\desktop\icons\app_icon.png"
+        $icoPath = "$IN\app_icon.ico"
+        
+        if (Test-Path $pngPath) {
+            $bmp = [System.Drawing.Bitmap]::FromFile($pngPath)
+            $bmp.Save($icoPath, [System.Drawing.Imaging.ImageFormat]::Icon)
+            $bmp.Dispose()
+            $iconArg = "--icon $icoPath"
+        } else {
+            $iconArg = "" # Kama picha haipo, itatumia icon ya kawaida
+        }
+        
+        # 4. Endesha jpackage
+        # Kumbuka: --input inasoma $IN, na --dest inaweka kwenye $OUT
+        jpackage --input "$IN" `
           --name "AlfarooqApp" `
           --main-jar "AlfarooqDesktop.jar" `
           --main-class "DesktopApp" `
-          --type exe `
-          --win-shortcut `
-          --win-menu `
-          --dest "C:\out_folder"
+          --type app-image `
+          $iconArg `
+          --dest "$OUT"
         
-        # Nakili matokeo kurudi kwenye workspace ya GitHub
-        Copy-Item -Path "C:\out_folder\*.exe" -Destination "$Env:GITHUB_WORKSPACE"
+        # 5. Zip matokeo na yarudishe kwenye workspace ya GitHub
+        Compress-Archive -Path "$OUT\AlfarooqApp" -DestinationPath "$Env:GITHUB_WORKSPACE\AlfarooqApp.zip" -Force
         
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Alfarooq-Windows-Installer
-        path: "*.exe"
+        name: Alfarooq-Windows-Package
+        path: AlfarooqApp.zip
         retention-days: 30
