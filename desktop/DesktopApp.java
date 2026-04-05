@@ -34,8 +34,6 @@ public class DesktopApp {
     private JTable historyTable;
     private DefaultTableModel historyTableModel;
     private JLabel statusLabel;
-    private JComboBox<String> languageCombo;
-    private String currentLanguage = "en";
     
     public static void main(String[] args) {
         try {
@@ -104,6 +102,7 @@ public class DesktopApp {
         
         frame.getContentPane().add(mainPanel, BorderLayout.CENTER);
         
+        // Initialize statusLabel (FIXED - was null)
         statusLabel = new JLabel("Ready");
         statusLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         frame.getContentPane().add(statusLabel, BorderLayout.SOUTH);
@@ -112,7 +111,6 @@ public class DesktopApp {
     }
     
     private void changeLanguage(String langCode) {
-        currentLanguage = langCode;
         JOptionPane.showMessageDialog(frame, "Language changed to " + langCode, "Language", JOptionPane.INFORMATION_MESSAGE);
     }
     
@@ -193,7 +191,7 @@ public class DesktopApp {
             return;
         }
         
-        statusLabel.setText("Logging in...");
+        if (statusLabel != null) statusLabel.setText("Logging in...");
         
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             private boolean success = false;
@@ -232,7 +230,7 @@ public class DesktopApp {
             
             @Override
             protected void done() {
-                statusLabel.setText("Ready");
+                if (statusLabel != null) statusLabel.setText("Ready");
                 if (success) {
                     JOptionPane.showMessageDialog(frame, "Welcome " + fullName + "!", "Success", JOptionPane.INFORMATION_MESSAGE);
                     if (role.equals("super_admin")) {
@@ -447,7 +445,7 @@ public class DesktopApp {
     }
     
     private void loadUsers() {
-        statusLabel.setText("Loading users...");
+        if (statusLabel != null) statusLabel.setText("Loading users...");
         
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             private Object[][] userData;
@@ -486,7 +484,7 @@ public class DesktopApp {
                         }
                     }
                 }
-                statusLabel.setText("Ready");
+                if (statusLabel != null) statusLabel.setText("Ready");
             }
         };
         worker.execute();
@@ -505,7 +503,7 @@ public class DesktopApp {
         int confirm = JOptionPane.showConfirmDialog(frame, "Delete user: " + username + "?", "Confirm", JOptionPane.YES_NO_OPTION);
         
         if (confirm == JOptionPane.YES_OPTION) {
-            statusLabel.setText("Deleting user...");
+            if (statusLabel != null) statusLabel.setText("Deleting user...");
             
             SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
                 @Override
@@ -520,7 +518,7 @@ public class DesktopApp {
                 
                 @Override
                 protected void done() {
-                    statusLabel.setText("Ready");
+                    if (statusLabel != null) statusLabel.setText("Ready");
                     JOptionPane.showMessageDialog(frame, "User deleted successfully", "Success", JOptionPane.INFORMATION_MESSAGE);
                     loadUsers();
                 }
@@ -550,7 +548,7 @@ public class DesktopApp {
     }
     
     private void loadHistoryTable(String department) {
-        statusLabel.setText("Loading history...");
+        if (statusLabel != null) statusLabel.setText("Loading history...");
         
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             private Object[][] historyData;
@@ -594,7 +592,7 @@ public class DesktopApp {
                         }
                     }
                 }
-                statusLabel.setText("Ready");
+                if (statusLabel != null) statusLabel.setText("Ready");
             }
         };
         worker.execute();
@@ -664,7 +662,7 @@ public class DesktopApp {
     }
     
     private void createUser(String fullName, String username, String password, String role, String department, JDialog dialog) {
-        statusLabel.setText("Creating user...");
+        if (statusLabel != null) statusLabel.setText("Creating user...");
         
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             private boolean success = false;
@@ -687,7 +685,7 @@ public class DesktopApp {
             
             @Override
             protected void done() {
-                statusLabel.setText("Ready");
+                if (statusLabel != null) statusLabel.setText("Ready");
                 if (success) {
                     JOptionPane.showMessageDialog(dialog, message, "Success", JOptionPane.INFORMATION_MESSAGE);
                     dialog.dispose();
@@ -727,7 +725,6 @@ public class DesktopApp {
             
             @Override
             protected void done() {
-                statusLabel.setText("Ready");
                 String time = LocalDateTime.now(UAE_TIMEZONE).format(DateTimeFormatter.ofPattern("HH:mm:ss"));
                 if (success) {
                     if (logArea != null) {
@@ -740,6 +737,7 @@ public class DesktopApp {
                     }
                     JOptionPane.showMessageDialog(frame, "Failed: " + message, "Error", JOptionPane.ERROR_MESSAGE);
                 }
+                if (statusLabel != null) statusLabel.setText("Ready");
             }
         };
         worker.execute();
@@ -802,7 +800,7 @@ public class DesktopApp {
             usernameField.setText("");
             passwordField.setText("");
             cardLayout.show(mainPanel, "login");
-            statusLabel.setText("Ready");
+            if (statusLabel != null) statusLabel.setText("Ready");
         }
     }
     

@@ -1,4 +1,4 @@
-name: Build Windows EXE
+name: Build Windows EXE with Icons
 
 on:
   push:
@@ -36,18 +36,43 @@ jobs:
         cd desktop
         jar cvfe AlfarooqDesktop.jar DesktopApp *.class
     
-    - name: Create EXE with jpackage
+    - name: Fix Path Limit and Run JPackage with Icons
       shell: pwsh
       run: |
-        cd desktop
-        jpackage --input . --name AlfarooqApp --main-jar AlfarooqDesktop.jar --main-class DesktopApp --type app-image --dest .
-        Compress-Archive -Path AlfarooqApp -DestinationPath AlfarooqApp.zip -Force
-    
-    - name: Upload artifacts
+        New-Item -Path "C:\" -Name "b" -ItemType "directory" -Force
+        Copy-Item "desktop/AlfarooqDesktop.jar" -Destination "C:\b\"
+        Copy-Item "desktop/lib" -Destination "C:\b\" -Recurse
+        Copy-Item "desktop/icons" -Destination "C:\b\" -Recurse -ErrorAction SilentlyContinue
+        
+        cd C:\b
+        
+        # Create simple icon if not exists
+        $iconPath = "C:\b\icons\app.ico"
+        if (-not (Test-Path $iconPath)) {
+            Add-Type -AssemblyName System.Drawing
+            $bmp = New-Object System.Drawing.Bitmap(256, 256)
+            $g = [System.Drawing.Graphics]::FromImage($bmp)
+            $g.Clear([System.Drawing.Color]::Blue)
+            $font = New-Object System.Drawing.Font("Arial", 120)
+            $g.DrawString("A", $font, [System.Drawing.Brushes]::White, 50, 50)
+            $bmp.Save($iconPath, [System.Drawing.Imaging.ImageFormat]::Png)
+        }
+        
+        jpackage --input . `
+          --name "AlfarooqApp" `
+          --main-jar "AlfarooqDesktop.jar" `
+          --main-class "DesktopApp" `
+          --type app-image `
+          --icon "icons/app.ico" `
+          --win-shortcut `
+          --win-menu `
+          --dest "output"
+        
+        Compress-Archive -Path "output\AlfarooqApp" -DestinationPath "AlfarooqApp.zip" -Force
+        Copy-Item "AlfarooqApp.zip" -Destination "$Env:GITHUB_WORKSPACE"
+        
+    - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Alfarooq-Desktop
-        path: |
-          desktop\AlfarooqDesktop.jar
-          desktop\AlfarooqApp.zip
-        retention-days: 30
+        name: Alfarooq-Windows-EXE
+        path: "AlfarooqApp.zip"
