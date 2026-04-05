@@ -1,4 +1,4 @@
-name: Build Windows EXE with Icons
+name: Build Windows EXE
 
 on:
   push:
@@ -36,43 +36,43 @@ jobs:
         cd desktop
         jar cvfe AlfarooqDesktop.jar DesktopApp *.class
     
-    - name: Fix Path Limit and Run JPackage with Icons
+    - name: Build EXE with jpackage
       shell: pwsh
       run: |
-        New-Item -Path "C:\" -Name "b" -ItemType "directory" -Force
-        Copy-Item "desktop/AlfarooqDesktop.jar" -Destination "C:\b\"
-        Copy-Item "desktop/lib" -Destination "C:\b\" -Recurse
-        Copy-Item "desktop/icons" -Destination "C:\b\" -Recurse -ErrorAction SilentlyContinue
+        # Create working directory with short path
+        New-Item -Path "C:\" -Name "build" -ItemType "directory" -Force
+        Copy-Item "desktop/AlfarooqDesktop.jar" -Destination "C:\build\"
+        Copy-Item "desktop/lib" -Destination "C:\build\" -Recurse
+        Copy-Item "desktop/icons" -Destination "C:\build\" -Recurse -ErrorAction SilentlyContinue
         
-        cd C:\b
+        cd C:\build
         
-        # Create simple icon if not exists
-        $iconPath = "C:\b\icons\app.ico"
-        if (-not (Test-Path $iconPath)) {
-            Add-Type -AssemblyName System.Drawing
-            $bmp = New-Object System.Drawing.Bitmap(256, 256)
-            $g = [System.Drawing.Graphics]::FromImage($bmp)
-            $g.Clear([System.Drawing.Color]::Blue)
-            $font = New-Object System.Drawing.Font("Arial", 120)
-            $g.DrawString("A", $font, [System.Drawing.Brushes]::White, 50, 50)
-            $bmp.Save($iconPath, [System.Drawing.Imaging.ImageFormat]::Png)
-        }
+        # Create simple icon
+        New-Item -Path "C:\build\icons" -ItemType "directory" -Force
+        Add-Type -AssemblyName System.Drawing
+        $bmp = New-Object System.Drawing.Bitmap(256, 256)
+        $g = [System.Drawing.Graphics]::FromImage($bmp)
+        $g.Clear([System.Drawing.Color]::FromArgb(33, 150, 243))
+        $font = New-Object System.Drawing.Font("Arial", 120, [System.Drawing.FontStyle]::Bold)
+        $g.DrawString("A", $font, [System.Drawing.Brushes]::White, 70, 70)
+        $iconPath = "C:\build\icons\app.ico"
+        $bmp.Save($iconPath)
         
+        # Build EXE (app-image type, no win-shortcut for app-image)
         jpackage --input . `
           --name "AlfarooqApp" `
           --main-jar "AlfarooqDesktop.jar" `
           --main-class "DesktopApp" `
           --type app-image `
           --icon "icons/app.ico" `
-          --win-shortcut `
-          --win-menu `
           --dest "output"
         
+        # Compress the output folder
         Compress-Archive -Path "output\AlfarooqApp" -DestinationPath "AlfarooqApp.zip" -Force
-        Copy-Item "AlfarooqApp.zip" -Destination "$Env:GITHUB_WORKSPACE"
         
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Alfarooq-Windows-EXE
-        path: "AlfarooqApp.zip"
+        name: Alfarooq-EXE
+        path: C:\build\AlfarooqApp.zip
+        retention-days: 30
