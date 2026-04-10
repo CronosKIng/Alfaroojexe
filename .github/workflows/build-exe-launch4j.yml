@@ -46,8 +46,7 @@ jobs:
     - name: Create EXE with Launch4j
       shell: pwsh
       run: |
-        # Create launch4j config file
-        $config = @'
+        $configXml = @"
 <?xml version="1.0" encoding="UTF-8"?>
 <launch4jConfig>
   <dontWrapJar>false</dontWrapJar>
@@ -82,18 +81,16 @@ jobs:
     <originalFilename>AlfarooqApp.exe</originalFilename>
   </versionInfo>
 </launch4jConfig>
-'@
-        $config | Out-File -FilePath "config.xml" -Encoding UTF8
+"@
+        $configXml | Out-File -FilePath "config.xml" -Encoding UTF8
         
-        # Run launch4j
         .\launch4j\launch4j.exe config.xml
         
-        # Verify EXE was created
         if (Test-Path "AlfarooqApp.exe") {
-          Write-Host "✅ EXE created successfully!"
+          Write-Host "EXE created successfully!"
           Copy-Item "AlfarooqApp.exe" -Destination "$Env:GITHUB_WORKSPACE"
         } else {
-          Write-Host "❌ EXE not found, checking directory..."
+          Write-Host "EXE not found"
           Get-ChildItem
         }
 
