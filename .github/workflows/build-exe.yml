@@ -8,16 +8,16 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
-    
+
     - name: Setup Folders and Dependencies
       shell: pwsh
       run: |
@@ -29,13 +29,13 @@ jobs:
       run: |
         cd desktop
         javac -cp "lib\gson-2.10.1.jar" -d . DesktopApp.java
-    
+
     - name: Create JAR
       shell: pwsh
       run: |
         cd desktop
         jar cvfe AlfarooqDesktop.jar DesktopApp *.class
-    
+
     - name: Build EXE with jpackage
       shell: pwsh
       run: |
@@ -43,14 +43,13 @@ jobs:
         New-Item -Path "C:\" -Name "build" -ItemType "directory" -Force
         Copy-Item "desktop\AlfarooqDesktop.jar" -Destination "C:\build\"
         Copy-Item "desktop\lib" -Destination "C:\build\" -Recurse
-        
-        # Windows inahitaji .ico, tutatumia jpackage bila icon ikifeli, 
-        # lakini hapa tunaiandaa picha
-        Copy-Item "desktop\icons\app_icon.png" -Destination "C:\build\app_icon.png"
-        
+
+        # Copy icon file (using hgd.ico)
+        Copy-Item "desktop\icons\hgd.ico" -Destination "C:\build\app_icon.ico"
+
         cd C:\build
-        
-        # Amri ya jpackage
+
+        # Amri ya jpackage na icon
         jpackage --input . `
           --name "AlfarooqApp" `
           --main-jar "AlfarooqDesktop.jar" `
@@ -58,12 +57,13 @@ jobs:
           --type app-image `
           --dest "output" `
           --vendor "Alfarooq" `
-          --description "Alfarooq Desktop Application"
-        
+          --description "Alfarooq Desktop Application" `
+          --icon "app_icon.ico"
+
         # Funga kila kitu kwenye ZIP
         Compress-Archive -Path "output\AlfarooqApp" -DestinationPath "AlfarooqApp.zip" -Force
         Copy-Item "AlfarooqApp.zip" -Destination "$Env:GITHUB_WORKSPACE"
-        
+
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
