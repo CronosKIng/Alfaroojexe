@@ -32,11 +32,13 @@ jobs:
       run: |
         mkdir C:\app
         copy desktop\AlfarooqDesktop.jar C:\app\
-        copy desktop\icons\hgd.ico C:\app\app.ico
+        copy desktop\icons\hgd.ico C:\app\hgd.ico
         cd C:\app
-        jpackage --input . --name "Alfarooq" --main-jar "AlfarooqDesktop.jar" --main-class "DesktopApp" --type app-image --dest output --icon app.ico
+        
+        jpackage --input . --name "Alfarooq" --main-jar "AlfarooqDesktop.jar" --main-class "DesktopApp" --type app-image --dest output --icon "C:\app\hgd.ico"
+        
         cd output
-        tar -a -c -f Alfarooq.zip Alfarooq
+        powershell -command "Compress-Archive -Path Alfarooq -DestinationPath Alfarooq.zip -Force"
         copy Alfarooq.zip %GITHUB_WORKSPACE%
 
     - name: Upload
