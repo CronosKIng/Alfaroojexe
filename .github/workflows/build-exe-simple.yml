@@ -1,0 +1,48 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Compile and Create JAR
+      shell: pwsh
+      run: |
+        cd desktop
+        New-Item -ItemType Directory -Force -Path "lib"
+        Invoke-WebRequest -Uri "https://repo1.maven.org/maven2/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar" -OutFile "lib\gson-2.10.1.jar"
+        javac -cp "lib\gson-2.10.1.jar" -d . DesktopApp.java
+        jar cvfe AlfarooqDesktop.jar DesktopApp *.class
+
+    - name: Download Launch4j
+      shell: pwsh
+      run: |
+        Invoke-WebRequest -Uri "https://netcologne.dl.sourceforge.net/project/launch4j/launch4j-3/3.50/launch4j-3.50-win32.zip" -OutFile "launch4j.zip"
+        Expand-Archive -Path "launch4j.zip" -DestinationPath "."
+
+    - name: Create EXE
+      shell: pwsh
+      run: |
+        $xml = '<?xml version="1.0" encoding="UTF-8"?><launch4jConfig><dontWrapJar>false</dontWrapJar><headerType>gui</headerType><jar>desktop/AlfarooqDesktop.jar</jar><outfile>AlfarooqApp.exe</outfile><icon>desktop/icons/hgd.ico</icon><jre><minVersion>11</minVersion></jre></launch4jConfig>'
+        $xml | Out-File -FilePath "config.xml" -Encoding UTF8
+        .\launch4j-3.50-win32\launch4j.exe config.xml
+        Copy-Item "AlfarooqApp.exe" -Destination "$Env:GITHUB_WORKSPACE"
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Alfarooq-EXE-Windows
+        path: AlfarooqApp.exe
