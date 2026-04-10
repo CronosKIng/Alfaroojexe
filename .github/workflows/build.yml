@@ -1,0 +1,46 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Compile Java
+      shell: cmd
+      run: |
+        cd desktop
+        mkdir lib
+        curl -o lib/gson-2.10.1.jar https://repo1.maven.org/maven2/com/google/code/gson/gson/2.10.1/gson-2.10.1.jar
+        javac -cp "lib/gson-2.10.1.jar" -d . DesktopApp.java
+        jar cvfe AlfarooqDesktop.jar DesktopApp *.class
+
+    - name: Create EXE
+      shell: cmd
+      run: |
+        mkdir C:\app
+        copy desktop\AlfarooqDesktop.jar C:\app\
+        copy desktop\icons\hgd.ico C:\app\app.ico
+        cd C:\app
+        jpackage --input . --name "Alfarooq" --main-jar "AlfarooqDesktop.jar" --main-class "DesktopApp" --type app-image --dest output --icon app.ico
+        cd output
+        tar -a -c -f Alfarooq.zip Alfarooq
+        copy Alfarooq.zip %GITHUB_WORKSPACE%
+
+    - name: Upload
+      uses: actions/upload-artifact@v4
+      with:
+        name: Alfarooq-EXE
+        path: Alfarooq.zip
