@@ -39,30 +39,37 @@ jobs:
     - name: Build EXE with jpackage
       shell: pwsh
       run: |
-        # Tengeneza build directory
-        New-Item -Path "C:\" -Name "build" -ItemType "directory" -Force
-        Copy-Item "desktop\AlfarooqDesktop.jar" -Destination "C:\build\"
-        Copy-Item "desktop\lib" -Destination "C:\build\" -Recurse
-
-        # Copy icon file (using hgd.ico)
-        Copy-Item "desktop\icons\hgd.ico" -Destination "C:\build\app_icon.ico"
-
-        cd C:\build
-
-        # Amri ya jpackage na icon
+        # Tumia D:\ drive (short path) badala ya C:\build
+        $buildDir = "D:\b"
+        New-Item -ItemType Directory -Force -Path $buildDir
+        
+        Copy-Item "desktop\AlfarooqDesktop.jar" -Destination "$buildDir\"
+        Copy-Item "desktop\lib" -Destination "$buildDir\" -Recurse
+        Copy-Item "desktop\icons\hgd.ico" -Destination "$buildDir\app.ico"
+        
+        cd $buildDir
+        
+        # jpackage na short path
         jpackage --input . `
-          --name "AlfarooqApp" `
+          --name "AlfApp" `
           --main-jar "AlfarooqDesktop.jar" `
           --main-class "DesktopApp" `
           --type app-image `
-          --dest "output" `
+          --dest "out" `
           --vendor "Alfarooq" `
-          --description "Alfarooq Desktop Application" `
-          --icon "app_icon.ico"
-
-        # Funga kila kitu kwenye ZIP
-        Compress-Archive -Path "output\AlfarooqApp" -DestinationPath "AlfarooqApp.zip" -Force
-        Copy-Item "AlfarooqApp.zip" -Destination "$Env:GITHUB_WORKSPACE"
+          --description "Alfarooq Desktop App" `
+          --icon "app.ico" `
+          --temp "tmp" `
+          --verbose
+        
+        # Compress output
+        if (Test-Path "out\AlfApp") {
+          Compress-Archive -Path "out\AlfApp" -DestinationPath "AlfarooqApp.zip" -Force
+          Copy-Item "AlfarooqApp.zip" -Destination "$Env:GITHUB_WORKSPACE"
+        } else {
+          Write-Host "Output directory not found, checking..."
+          Get-ChildItem -Recurse
+        }
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
