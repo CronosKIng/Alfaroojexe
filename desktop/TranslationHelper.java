@@ -20,7 +20,6 @@ public class TranslationHelper {
     
     public static void saveLanguage(String langCode) {
         currentLanguage = langCode;
-        // Save to file for persistence
         try (FileWriter writer = new FileWriter("language_config.txt")) {
             writer.write(langCode);
         } catch (IOException e) {
@@ -62,21 +61,6 @@ public class TranslationHelper {
             e.printStackTrace();
         }
         return text;
-    }
-    
-    public static void translateButton(JButton button, String originalText) {
-        String translated = translateText(originalText);
-        button.setText(translated);
-    }
-    
-    public static void translateLabel(JLabel label, String originalText) {
-        String translated = translateText(originalText);
-        label.setText(translated);
-    }
-    
-    public static void translateFrame(JFrame frame, String originalTitle) {
-        String translated = translateText(originalTitle);
-        frame.setTitle(translated);
     }
     
     private static String sendPostRequest(String urlString, String json) throws Exception {
