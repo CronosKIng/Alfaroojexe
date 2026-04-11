@@ -37,9 +37,10 @@ public class DesktopApp {
     
     private JComboBox<String> languageCombo;
     private JLabel languageLabel;
-    private JCheckBox showPasswordCheckbox;
-    private JLabel logoLabel;
     private JButton toggleEyeBtn;
+    private JLabel logoLabel;
+    private JLabel titleLabel;
+    private JLabel subtitleLabel;
     
     private final String[] LANGUAGES = {
         "English", "Kiswahili", "Arabic", "French", "Spanish", 
@@ -92,6 +93,8 @@ public class DesktopApp {
         }
         
         if (languageLabel != null) languageLabel.setText(TranslationHelper.translateText("Select Language:"));
+        if (titleLabel != null) titleLabel.setText(TranslationHelper.translateText("AL FAROOJ AL SHAMI"));
+        if (subtitleLabel != null) subtitleLabel.setText(TranslationHelper.translateText("TIME TABLE SYSTEM"));
         
         if (currentRole != null) {
             if (currentRole.equals("super_admin")) {
@@ -128,8 +131,13 @@ public class DesktopApp {
                             }
                         } else if (c instanceof JButton) {
                             JButton btn = (JButton) c;
-                            if (btn.getText() != null && btn.getText().equals("LOGIN")) {
-                                btn.setText(TranslationHelper.translateText("LOGIN"));
+                            String btnText = btn.getText();
+                            if (btnText != null && (btnText.equals("LOGIN") || btnText.equals("SIGN IN") || 
+                                btnText.equals("SIGN OUT") || btnText.equals("HISTORY") || 
+                                btnText.equals("LOGOUT") || btnText.equals("REFRESH") ||
+                                btnText.equals("CREATE USER") || btnText.equals("CREATE ADMIN") ||
+                                btnText.equals("DELETE SELECTED"))) {
+                                btn.setText(TranslationHelper.translateText(btnText));
                             }
                         }
                     }
@@ -157,6 +165,7 @@ public class DesktopApp {
         }
         cardLayout.show(mainPanel, "super_admin");
         loadUsers();
+        loadAllHistoryTables();
     }
     
     private void refreshAdminPanel() {
@@ -173,6 +182,7 @@ public class DesktopApp {
         }
         cardLayout.show(mainPanel, "admin");
         loadUsers();
+        loadAllHistoryTables();
     }
     
     private void refreshUserPanel() {
@@ -188,10 +198,18 @@ public class DesktopApp {
         cardLayout.show(mainPanel, "user");
         initUserPanel();
     }
+    
+    private void loadAllHistoryTables() {
+        loadHistoryTable(null);
+        loadHistoryTable("kitchen");
+        loadHistoryTable("waiter");
+        loadHistoryTable("delivery");
+        loadHistoryTable("manager");
+    }
 
     private void initialize() {
         frame = new JFrame("AL FAROOJ AL SHAMI - Time Table System");
-        frame.setBounds(100, 100, 1300, 850);
+        frame.setBounds(100, 100, 1400, 900);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(new BorderLayout());
 
@@ -264,36 +282,38 @@ public class DesktopApp {
         gbc.gridy = 0;
         gbc.gridwidth = 2;
         try {
-            ImageIcon logoIcon = new ImageIcon("desktop/icons/hgd.ico");
-            Image img = logoIcon.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+            ImageIcon logoIcon = new ImageIcon(getClass().getResource("/icons/hgd.ico"));
+            if (logoIcon.getImageLoadStatus() != java.awt.MediaTracker.COMPLETE) {
+                logoIcon = new ImageIcon("desktop/icons/hgd.ico");
+            }
+            Image img = logoIcon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
             logoLabel = new JLabel(new ImageIcon(img));
-            panel.add(logoLabel, gbc);
         } catch (Exception e) {
-            logoLabel = new JLabel("[Logo]");
-            logoLabel.setFont(new Font("Arial", Font.PLAIN, 30));
+            logoLabel = new JLabel("ALF");
+            logoLabel.setFont(new Font("Arial", Font.BOLD, 40));
             logoLabel.setForeground(Color.WHITE);
-            panel.add(logoLabel, gbc);
         }
+        panel.add(logoLabel, gbc);
 
         gbc.gridy = 1;
-        JLabel titleLabel = new JLabel(TranslationHelper.translateText("AL FAROOJ AL SHAMI"));
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 32));
-        titleLabel.setForeground(Color.WHITE);
+        titleLabel = new JLabel(TranslationHelper.translateText("AL FAROOJ AL SHAMI"));
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
+        titleLabel.setForeground(Color.BLACK);
         panel.add(titleLabel, gbc);
 
         gbc.gridy = 2;
-        JLabel subtitleLabel = new JLabel(TranslationHelper.translateText("TIME TABLE SYSTEM"));
-        subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 18));
-        subtitleLabel.setForeground(Color.WHITE);
+        subtitleLabel = new JLabel(TranslationHelper.translateText("TIME TABLE SYSTEM"));
+        subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 16));
+        subtitleLabel.setForeground(Color.BLACK);
         panel.add(subtitleLabel, gbc);
 
         gbc.gridy = 3;
-        panel.add(Box.createVerticalStrut(30), gbc);
+        panel.add(Box.createVerticalStrut(20), gbc);
 
         gbc.gridy = 4;
         gbc.gridwidth = 1;
         JLabel userLabel = new JLabel(TranslationHelper.translateText("Username:"));
-        userLabel.setForeground(Color.WHITE);
+        userLabel.setForeground(Color.BLACK);
         userLabel.setFont(new Font("Arial", Font.BOLD, 14));
         panel.add(userLabel, gbc);
 
@@ -321,7 +341,7 @@ public class DesktopApp {
         gbc.gridx = 0;
         gbc.gridy = 5;
         JLabel passLabel = new JLabel(TranslationHelper.translateText("Password:"));
-        passLabel.setForeground(Color.WHITE);
+        passLabel.setForeground(Color.BLACK);
         passLabel.setFont(new Font("Arial", Font.BOLD, 14));
         panel.add(passLabel, gbc);
 
@@ -336,7 +356,8 @@ public class DesktopApp {
         passwordField.setEchoChar((char)0);
         passwordField.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent e) {
-                if (new String(passwordField.getPassword()).equals(TranslationHelper.translateText("Enter password"))) {
+                String text = new String(passwordField.getPassword());
+                if (text.equals(TranslationHelper.translateText("Enter password"))) {
                     passwordField.setText("");
                     passwordField.setForeground(Color.BLACK);
                     passwordField.setEchoChar('*');
@@ -351,18 +372,17 @@ public class DesktopApp {
             }
         });
         
-        toggleEyeBtn = new JButton("[O]");
+        toggleEyeBtn = new JButton("Show");
         toggleEyeBtn.setFont(new Font("Arial", Font.PLAIN, 10));
-        toggleEyeBtn.setPreferredSize(new Dimension(40, 25));
-        toggleEyeBtn.setBackground(new Color(33, 150, 243));
-        toggleEyeBtn.setBorder(BorderFactory.createEmptyBorder());
+        toggleEyeBtn.setPreferredSize(new Dimension(50, 25));
+        toggleEyeBtn.setBackground(new Color(200, 200, 200));
         toggleEyeBtn.addActionListener(e -> {
             if (passwordField.getEchoChar() == 0) {
                 passwordField.setEchoChar('*');
-                toggleEyeBtn.setText("[*]");
+                toggleEyeBtn.setText("Show");
             } else {
                 passwordField.setEchoChar((char)0);
-                toggleEyeBtn.setText("[O]");
+                toggleEyeBtn.setText("Hide");
             }
         });
         
@@ -377,7 +397,7 @@ public class DesktopApp {
         JPanel langPanel = new JPanel(new FlowLayout());
         langPanel.setBackground(new Color(33, 150, 243));
         languageLabel = new JLabel(TranslationHelper.translateText("Select Language:"));
-        languageLabel.setForeground(Color.WHITE);
+        languageLabel.setForeground(Color.BLACK);
         languageLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         langPanel.add(languageLabel);
         
@@ -474,9 +494,11 @@ public class DesktopApp {
                     if (role.equals("super_admin")) {
                         cardLayout.show(mainPanel, "super_admin");
                         loadUsers();
+                        loadAllHistoryTables();
                     } else if (role.equals("admin")) {
                         cardLayout.show(mainPanel, "admin");
                         loadUsers();
+                        loadAllHistoryTables();
                     } else {
                         cardLayout.show(mainPanel, "user");
                         initUserPanel();
@@ -662,7 +684,10 @@ public class DesktopApp {
         toolBar.addSeparator();
 
         JButton refreshBtn = new JButton(TranslationHelper.translateText("REFRESH"));
-        refreshBtn.addActionListener(e -> loadUsers());
+        refreshBtn.addActionListener(e -> {
+            loadUsers();
+            loadAllHistoryTables();
+        });
         toolBar.add(refreshBtn);
 
         JButton deleteBtn = new JButton(TranslationHelper.translateText("DELETE SELECTED"));
@@ -818,7 +843,7 @@ public class DesktopApp {
             protected Void doInBackground() {
                 try {
                     String url = API_URL + "attendance_logs";
-                    if (department != null) {
+                    if (department != null && !department.isEmpty()) {
                         url += "?department=" + department;
                     }
                     String response = sendGetRequest(url);
