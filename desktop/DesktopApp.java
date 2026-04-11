@@ -43,6 +43,15 @@ public class DesktopApp {
     private JLabel subtitleLabel;
     private JButton loginButton;
     
+    // Store translated strings for dynamic components
+    private JLabel superAdminTitleLabel;
+    private JLabel adminTitleLabel;
+    private JLabel userTitleLabel;
+    private JTabbedPane superAdminTabbedPane;
+    private JTabbedPane adminTabbedPane;
+    private JButton signInBtn, signOutBtn, historyBtn;
+    private JButton createUserBtn, createAdminBtn, refreshBtn, deleteBtn;
+    
     private final String[] LANGUAGES = {
         "English", "Kiswahili", "Arabic", "French", "Spanish", 
         "German", "Italian", "Portuguese", "Russian", "Chinese",
@@ -112,15 +121,70 @@ public class DesktopApp {
             }
         }
         
-        // Refresh panels if logged in
+        // Translate dashboard titles and tabs if logged in
         if (currentRole != null) {
             if (currentRole.equals("super_admin")) {
-                refreshSuperAdminPanel();
+                if (superAdminTitleLabel != null) superAdminTitleLabel.setText(TranslationHelper.translateText("SUPER ADMIN DASHBOARD"));
+                if (superAdminTabbedPane != null) {
+                    superAdminTabbedPane.setTitleAt(0, TranslationHelper.translateText("MANAGE USERS"));
+                    superAdminTabbedPane.setTitleAt(1, TranslationHelper.translateText("TODAY ATTENDANCE"));
+                    superAdminTabbedPane.setTitleAt(2, TranslationHelper.translateText("ALL HISTORY"));
+                    superAdminTabbedPane.setTitleAt(3, TranslationHelper.translateText("KITCHEN HISTORY"));
+                    superAdminTabbedPane.setTitleAt(4, TranslationHelper.translateText("WAITER HISTORY"));
+                    superAdminTabbedPane.setTitleAt(5, TranslationHelper.translateText("DELIVERY HISTORY"));
+                    superAdminTabbedPane.setTitleAt(6, TranslationHelper.translateText("MANAGER HISTORY"));
+                }
             } else if (currentRole.equals("admin")) {
-                refreshAdminPanel();
+                if (adminTitleLabel != null) adminTitleLabel.setText(TranslationHelper.translateText("ADMIN DASHBOARD"));
+                if (adminTabbedPane != null) {
+                    adminTabbedPane.setTitleAt(0, TranslationHelper.translateText("MANAGE USERS"));
+                    adminTabbedPane.setTitleAt(1, TranslationHelper.translateText("TODAY ATTENDANCE"));
+                    adminTabbedPane.setTitleAt(2, TranslationHelper.translateText("ALL HISTORY"));
+                    adminTabbedPane.setTitleAt(3, TranslationHelper.translateText("KITCHEN HISTORY"));
+                    adminTabbedPane.setTitleAt(4, TranslationHelper.translateText("WAITER HISTORY"));
+                    adminTabbedPane.setTitleAt(5, TranslationHelper.translateText("DELIVERY HISTORY"));
+                    adminTabbedPane.setTitleAt(6, TranslationHelper.translateText("MANAGER HISTORY"));
+                }
             } else if (currentRole.equals("user")) {
-                refreshUserPanel();
+                if (userTitleLabel != null) userTitleLabel.setText(TranslationHelper.translateText("USER DASHBOARD"));
+                if (signInBtn != null) signInBtn.setText(TranslationHelper.translateText("SIGN IN"));
+                if (signOutBtn != null) signOutBtn.setText(TranslationHelper.translateText("SIGN OUT"));
+                if (historyBtn != null) historyBtn.setText(TranslationHelper.translateText("MY HISTORY"));
             }
+        }
+        
+        // Translate user panel buttons if visible
+        if (createUserBtn != null) createUserBtn.setText(TranslationHelper.translateText("CREATE USER"));
+        if (createAdminBtn != null) createAdminBtn.setText(TranslationHelper.translateText("CREATE ADMIN"));
+        if (refreshBtn != null) refreshBtn.setText(TranslationHelper.translateText("REFRESH"));
+        if (deleteBtn != null) deleteBtn.setText(TranslationHelper.translateText("DELETE SELECTED"));
+        
+        // Refresh table column headers if tables exist
+        refreshTableHeaders();
+    }
+    
+    private void refreshTableHeaders() {
+        if (userTableModel != null) {
+            userTableModel.setColumnIdentifiers(new Object[]{
+                TranslationHelper.translateText("ID"),
+                TranslationHelper.translateText("Full Name"),
+                TranslationHelper.translateText("Username"),
+                TranslationHelper.translateText("Role"),
+                TranslationHelper.translateText("Department"),
+                TranslationHelper.translateText("Created At")
+            });
+        }
+        
+        if (historyTableModel != null) {
+            historyTableModel.setColumnIdentifiers(new Object[]{
+                TranslationHelper.translateText("ID"),
+                TranslationHelper.translateText("Username"),
+                TranslationHelper.translateText("Full Name"),
+                TranslationHelper.translateText("Department"),
+                TranslationHelper.translateText("Event"),
+                TranslationHelper.translateText("Location"),
+                TranslationHelper.translateText("Timestamp")
+            });
         }
     }
     
@@ -206,6 +270,7 @@ public class DesktopApp {
         cardLayout.show(mainPanel, "super_admin");
         loadUsers();
         loadAllHistoryTables();
+        translateAllUI();
     }
     
     private void refreshAdminPanel() {
@@ -223,6 +288,7 @@ public class DesktopApp {
         cardLayout.show(mainPanel, "admin");
         loadUsers();
         loadAllHistoryTables();
+        translateAllUI();
     }
     
     private void refreshUserPanel() {
@@ -237,6 +303,7 @@ public class DesktopApp {
         }
         cardLayout.show(mainPanel, "user");
         initUserPanel();
+        translateAllUI();
     }
     
     private void loadAllHistoryTables() {
@@ -280,7 +347,6 @@ public class DesktopApp {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
 
-        // Logo - using log.png
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
@@ -306,13 +372,13 @@ public class DesktopApp {
         panel.add(logoLabel, gbc);
 
         gbc.gridy = 1;
-        titleLabel = new JLabel(TranslationHelper.translateText("AL FAROOJ AL SHAMI"));
+        titleLabel = new JLabel("AL FAROOJ AL SHAMI");
         titleLabel.setFont(new Font("Arial", Font.BOLD, 28));
         titleLabel.setForeground(Color.WHITE);
         panel.add(titleLabel, gbc);
 
         gbc.gridy = 2;
-        subtitleLabel = new JLabel(TranslationHelper.translateText("TIME TABLE SYSTEM"));
+        subtitleLabel = new JLabel("TIME TABLE SYSTEM");
         subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 16));
         subtitleLabel.setForeground(Color.WHITE);
         panel.add(subtitleLabel, gbc);
@@ -322,7 +388,7 @@ public class DesktopApp {
 
         gbc.gridy = 4;
         gbc.gridwidth = 1;
-        JLabel userLabel = new JLabel(TranslationHelper.translateText("Username:"));
+        JLabel userLabel = new JLabel("Username:");
         userLabel.setForeground(Color.WHITE);
         userLabel.setFont(new Font("Arial", Font.BOLD, 14));
         panel.add(userLabel, gbc);
@@ -331,10 +397,10 @@ public class DesktopApp {
         usernameField = new JTextField(20);
         usernameField.setFont(new Font("Arial", Font.PLAIN, 14));
         usernameField.setForeground(Color.GRAY);
-        usernameField.setText(TranslationHelper.translateText("Enter username"));
+        usernameField.setText("Enter username");
         usernameField.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent e) {
-                if (usernameField.getText().equals(TranslationHelper.translateText("Enter username"))) {
+                if (usernameField.getText().equals("Enter username")) {
                     usernameField.setText("");
                     usernameField.setForeground(Color.BLACK);
                 }
@@ -342,7 +408,7 @@ public class DesktopApp {
             public void focusLost(FocusEvent e) {
                 if (usernameField.getText().isEmpty()) {
                     usernameField.setForeground(Color.GRAY);
-                    usernameField.setText(TranslationHelper.translateText("Enter username"));
+                    usernameField.setText("Enter username");
                 }
             }
         });
@@ -350,7 +416,7 @@ public class DesktopApp {
 
         gbc.gridx = 0;
         gbc.gridy = 5;
-        JLabel passLabel = new JLabel(TranslationHelper.translateText("Password:"));
+        JLabel passLabel = new JLabel("Password:");
         passLabel.setForeground(Color.WHITE);
         passLabel.setFont(new Font("Arial", Font.BOLD, 14));
         panel.add(passLabel, gbc);
@@ -362,12 +428,12 @@ public class DesktopApp {
         passwordField = new JPasswordField(20);
         passwordField.setFont(new Font("Arial", Font.PLAIN, 14));
         passwordField.setForeground(Color.GRAY);
-        passwordField.setText(TranslationHelper.translateText("Enter password"));
+        passwordField.setText("Enter password");
         passwordField.setEchoChar((char)0);
         passwordField.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent e) {
                 String text = new String(passwordField.getPassword());
-                if (text.equals(TranslationHelper.translateText("Enter password"))) {
+                if (text.equals("Enter password")) {
                     passwordField.setText("");
                     passwordField.setForeground(Color.BLACK);
                     passwordField.setEchoChar('*');
@@ -376,7 +442,7 @@ public class DesktopApp {
             public void focusLost(FocusEvent e) {
                 if (passwordField.getPassword().length == 0) {
                     passwordField.setForeground(Color.GRAY);
-                    passwordField.setText(TranslationHelper.translateText("Enter password"));
+                    passwordField.setText("Enter password");
                     passwordField.setEchoChar((char)0);
                 }
             }
@@ -406,7 +472,7 @@ public class DesktopApp {
         
         JPanel langPanel = new JPanel(new FlowLayout());
         langPanel.setBackground(new Color(33, 150, 243));
-        languageLabel = new JLabel(TranslationHelper.translateText("Select Language:"));
+        languageLabel = new JLabel("Select Language:");
         languageLabel.setForeground(Color.WHITE);
         languageLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         langPanel.add(languageLabel);
@@ -432,7 +498,7 @@ public class DesktopApp {
         panel.add(langPanel, gbc);
 
         gbc.gridy = 7;
-        loginButton = new JButton(TranslationHelper.translateText("LOGIN"));
+        loginButton = new JButton("LOGIN");
         loginButton.setBackground(new Color(0, 100, 0));
         loginButton.setForeground(Color.WHITE);
         loginButton.setFont(new Font("Arial", Font.BOLD, 18));
@@ -452,17 +518,17 @@ public class DesktopApp {
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword()).trim();
 
-        if (username.equals(TranslationHelper.translateText("Enter username")) || username.isEmpty()) {
+        if (username.equals("Enter username") || username.isEmpty()) {
             JOptionPane.showMessageDialog(frame, TranslationHelper.translateText("Please enter username"), TranslationHelper.translateText("Error"), JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        if (password.equals(TranslationHelper.translateText("Enter password")) || password.isEmpty()) {
+        if (password.equals("Enter password") || password.isEmpty()) {
             JOptionPane.showMessageDialog(frame, TranslationHelper.translateText("Please enter password"), TranslationHelper.translateText("Error"), JOptionPane.ERROR_MESSAGE);
             return;
         }
 
-        statusLabel.setText(TranslationHelper.translateText("Logging in..."));
+        if (statusLabel != null) statusLabel.setText(TranslationHelper.translateText("Logging in..."));
 
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             private boolean success = false;
@@ -501,20 +567,23 @@ public class DesktopApp {
 
             @Override
             protected void done() {
-                statusLabel.setText(TranslationHelper.translateText("Ready"));
+                if (statusLabel != null) statusLabel.setText(TranslationHelper.translateText("Ready"));
                 if (success) {
                     JOptionPane.showMessageDialog(frame, TranslationHelper.translateText("Welcome ") + fullName + "!", TranslationHelper.translateText("Success"), JOptionPane.INFORMATION_MESSAGE);
                     if (role.equals("super_admin")) {
                         cardLayout.show(mainPanel, "super_admin");
                         loadUsers();
                         loadAllHistoryTables();
+                        translateAllUI();
                     } else if (role.equals("admin")) {
                         cardLayout.show(mainPanel, "admin");
                         loadUsers();
                         loadAllHistoryTables();
+                        translateAllUI();
                     } else {
                         cardLayout.show(mainPanel, "user");
                         initUserPanel();
+                        translateAllUI();
                     }
                 } else {
                     JOptionPane.showMessageDialog(frame, TranslationHelper.translateText("Login failed: ") + errorMsg, TranslationHelper.translateText("Error"), JOptionPane.ERROR_MESSAGE);
@@ -531,34 +600,34 @@ public class DesktopApp {
         topPanel.setBackground(new Color(21, 101, 192));
         topPanel.setPreferredSize(new Dimension(0, 60));
 
-        JLabel titleLabel = new JLabel(TranslationHelper.translateText("SUPER ADMIN DASHBOARD"), SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setForeground(Color.WHITE);
-        topPanel.add(titleLabel, BorderLayout.CENTER);
+        superAdminTitleLabel = new JLabel("SUPER ADMIN DASHBOARD", SwingConstants.CENTER);
+        superAdminTitleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        superAdminTitleLabel.setForeground(Color.WHITE);
+        topPanel.add(superAdminTitleLabel, BorderLayout.CENTER);
 
         JPanel userInfoPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         userInfoPanel.setBackground(new Color(21, 101, 192));
-        JLabel userLabel = new JLabel(TranslationHelper.translateText("Logged in as: ") + (currentFullName != null ? currentFullName : ""));
+        JLabel userLabel = new JLabel("Logged in as: " + (currentFullName != null ? currentFullName : ""));
         userLabel.setForeground(Color.WHITE);
         userInfoPanel.add(userLabel);
 
-        JButton logoutBtn = new JButton(TranslationHelper.translateText("LOGOUT"));
+        JButton logoutBtn = new JButton("LOGOUT");
         logoutBtn.addActionListener(e -> logout());
         userInfoPanel.add(logoutBtn);
 
         topPanel.add(userInfoPanel, BorderLayout.EAST);
         panel.add(topPanel, BorderLayout.NORTH);
 
-        JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.addTab(TranslationHelper.translateText("MANAGE USERS"), createUsersPanel(true));
-        tabbedPane.addTab(TranslationHelper.translateText("TODAY ATTENDANCE"), createTodayAttendancePanel());
-        tabbedPane.addTab(TranslationHelper.translateText("ALL HISTORY"), createHistoryPanel(null));
-        tabbedPane.addTab(TranslationHelper.translateText("KITCHEN HISTORY"), createHistoryPanel("kitchen"));
-        tabbedPane.addTab(TranslationHelper.translateText("WAITER HISTORY"), createHistoryPanel("waiter"));
-        tabbedPane.addTab(TranslationHelper.translateText("DELIVERY HISTORY"), createHistoryPanel("delivery"));
-        tabbedPane.addTab(TranslationHelper.translateText("MANAGER HISTORY"), createHistoryPanel("manager"));
+        superAdminTabbedPane = new JTabbedPane();
+        superAdminTabbedPane.addTab("MANAGE USERS", createUsersPanel(true));
+        superAdminTabbedPane.addTab("TODAY ATTENDANCE", createTodayAttendancePanel());
+        superAdminTabbedPane.addTab("ALL HISTORY", createHistoryPanel(null));
+        superAdminTabbedPane.addTab("KITCHEN HISTORY", createHistoryPanel("kitchen"));
+        superAdminTabbedPane.addTab("WAITER HISTORY", createHistoryPanel("waiter"));
+        superAdminTabbedPane.addTab("DELIVERY HISTORY", createHistoryPanel("delivery"));
+        superAdminTabbedPane.addTab("MANAGER HISTORY", createHistoryPanel("manager"));
 
-        panel.add(tabbedPane, BorderLayout.CENTER);
+        panel.add(superAdminTabbedPane, BorderLayout.CENTER);
 
         return panel;
     }
@@ -567,20 +636,12 @@ public class DesktopApp {
         JPanel panel = new JPanel(new BorderLayout());
         
         JToolBar toolBar = new JToolBar();
-        JButton refreshBtn = new JButton(TranslationHelper.translateText("REFRESH"));
+        JButton refreshBtn = new JButton("REFRESH");
         refreshBtn.addActionListener(e -> loadTodayAttendanceTable());
         toolBar.add(refreshBtn);
         panel.add(toolBar, BorderLayout.NORTH);
         
-        String[] columns = {
-            TranslationHelper.translateText("ID"), 
-            TranslationHelper.translateText("Username"), 
-            TranslationHelper.translateText("Full Name"), 
-            TranslationHelper.translateText("Department"), 
-            TranslationHelper.translateText("Event"), 
-            TranslationHelper.translateText("Location"), 
-            TranslationHelper.translateText("Timestamp")
-        };
+        String[] columns = {"ID", "Username", "Full Name", "Department", "Event", "Location", "Timestamp"};
         historyTableModel = new DefaultTableModel(columns, 0);
         historyTable = new JTable(historyTableModel);
         historyTable.setFillsViewportHeight(true);
@@ -592,7 +653,7 @@ public class DesktopApp {
     }
     
     private void loadTodayAttendanceTable() {
-        statusLabel.setText(TranslationHelper.translateText("Loading today's attendance..."));
+        if (statusLabel != null) statusLabel.setText(TranslationHelper.translateText("Loading today's attendance..."));
         
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             private Object[][] historyData;
@@ -630,11 +691,12 @@ public class DesktopApp {
                         for (Object[] row : historyData) {
                             historyTableModel.addRow(row);
                         }
-                        statusLabel.setText(TranslationHelper.translateText("Ready") + " - " + historyData.length + " " + TranslationHelper.translateText("records"));
+                        if (statusLabel != null) statusLabel.setText(TranslationHelper.translateText("Ready") + " - " + historyData.length + " " + TranslationHelper.translateText("records"));
                     } else {
-                        statusLabel.setText(TranslationHelper.translateText("Ready") + " - " + TranslationHelper.translateText("No records"));
+                        if (statusLabel != null) statusLabel.setText(TranslationHelper.translateText("Ready") + " - " + TranslationHelper.translateText("No records"));
                     }
                 }
+                refreshTableHeaders();
             }
         };
         worker.execute();
@@ -647,34 +709,34 @@ public class DesktopApp {
         topPanel.setBackground(new Color(46, 125, 50));
         topPanel.setPreferredSize(new Dimension(0, 60));
 
-        JLabel titleLabel = new JLabel(TranslationHelper.translateText("ADMIN DASHBOARD"), SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setForeground(Color.WHITE);
-        topPanel.add(titleLabel, BorderLayout.CENTER);
+        adminTitleLabel = new JLabel("ADMIN DASHBOARD", SwingConstants.CENTER);
+        adminTitleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        adminTitleLabel.setForeground(Color.WHITE);
+        topPanel.add(adminTitleLabel, BorderLayout.CENTER);
 
         JPanel userInfoPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         userInfoPanel.setBackground(new Color(46, 125, 50));
-        JLabel userLabel = new JLabel(TranslationHelper.translateText("Logged in as: ") + (currentFullName != null ? currentFullName : ""));
+        JLabel userLabel = new JLabel("Logged in as: " + (currentFullName != null ? currentFullName : ""));
         userLabel.setForeground(Color.WHITE);
         userInfoPanel.add(userLabel);
 
-        JButton logoutBtn = new JButton(TranslationHelper.translateText("LOGOUT"));
+        JButton logoutBtn = new JButton("LOGOUT");
         logoutBtn.addActionListener(e -> logout());
         userInfoPanel.add(logoutBtn);
 
         topPanel.add(userInfoPanel, BorderLayout.EAST);
         panel.add(topPanel, BorderLayout.NORTH);
 
-        JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.addTab(TranslationHelper.translateText("MANAGE USERS"), createUsersPanel(false));
-        tabbedPane.addTab(TranslationHelper.translateText("TODAY ATTENDANCE"), createTodayAttendancePanel());
-        tabbedPane.addTab(TranslationHelper.translateText("ALL HISTORY"), createHistoryPanel(null));
-        tabbedPane.addTab(TranslationHelper.translateText("KITCHEN HISTORY"), createHistoryPanel("kitchen"));
-        tabbedPane.addTab(TranslationHelper.translateText("WAITER HISTORY"), createHistoryPanel("waiter"));
-        tabbedPane.addTab(TranslationHelper.translateText("DELIVERY HISTORY"), createHistoryPanel("delivery"));
-        tabbedPane.addTab(TranslationHelper.translateText("MANAGER HISTORY"), createHistoryPanel("manager"));
+        adminTabbedPane = new JTabbedPane();
+        adminTabbedPane.addTab("MANAGE USERS", createUsersPanel(false));
+        adminTabbedPane.addTab("TODAY ATTENDANCE", createTodayAttendancePanel());
+        adminTabbedPane.addTab("ALL HISTORY", createHistoryPanel(null));
+        adminTabbedPane.addTab("KITCHEN HISTORY", createHistoryPanel("kitchen"));
+        adminTabbedPane.addTab("WAITER HISTORY", createHistoryPanel("waiter"));
+        adminTabbedPane.addTab("DELIVERY HISTORY", createHistoryPanel("delivery"));
+        adminTabbedPane.addTab("MANAGER HISTORY", createHistoryPanel("manager"));
 
-        panel.add(tabbedPane, BorderLayout.CENTER);
+        panel.add(adminTabbedPane, BorderLayout.CENTER);
 
         return panel;
     }
@@ -686,18 +748,18 @@ public class DesktopApp {
         topPanel.setBackground(new Color(230, 81, 0));
         topPanel.setPreferredSize(new Dimension(0, 60));
 
-        JLabel titleLabel = new JLabel(TranslationHelper.translateText("USER DASHBOARD"), SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setForeground(Color.WHITE);
-        topPanel.add(titleLabel, BorderLayout.CENTER);
+        userTitleLabel = new JLabel("USER DASHBOARD", SwingConstants.CENTER);
+        userTitleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        userTitleLabel.setForeground(Color.WHITE);
+        topPanel.add(userTitleLabel, BorderLayout.CENTER);
 
         JPanel userInfoPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         userInfoPanel.setBackground(new Color(230, 81, 0));
-        JLabel userLabel = new JLabel(TranslationHelper.translateText("User: ") + (currentFullName != null ? currentFullName : ""));
+        JLabel userLabel = new JLabel("User: " + (currentFullName != null ? currentFullName : ""));
         userLabel.setForeground(Color.WHITE);
         userInfoPanel.add(userLabel);
 
-        JButton logoutBtn = new JButton(TranslationHelper.translateText("LOGOUT"));
+        JButton logoutBtn = new JButton("LOGOUT");
         logoutBtn.addActionListener(e -> logout());
         userInfoPanel.add(logoutBtn);
 
@@ -710,7 +772,7 @@ public class DesktopApp {
         JPanel buttonsPanel = new JPanel(new GridLayout(2, 2, 20, 20));
         buttonsPanel.setBorder(new EmptyBorder(30, 50, 30, 50));
 
-        JButton signInBtn = new JButton(TranslationHelper.translateText("SIGN IN"));
+        signInBtn = new JButton("SIGN IN");
         signInBtn.setBackground(new Color(76, 175, 80));
         signInBtn.setForeground(Color.WHITE);
         signInBtn.setFont(new Font("Arial", Font.BOLD, 16));
@@ -718,7 +780,7 @@ public class DesktopApp {
         signInBtn.addActionListener(e -> recordAttendance("sign_in", "Sign In"));
         buttonsPanel.add(signInBtn);
 
-        JButton signOutBtn = new JButton(TranslationHelper.translateText("SIGN OUT"));
+        signOutBtn = new JButton("SIGN OUT");
         signOutBtn.setBackground(new Color(244, 67, 54));
         signOutBtn.setForeground(Color.WHITE);
         signOutBtn.setFont(new Font("Arial", Font.BOLD, 16));
@@ -726,7 +788,7 @@ public class DesktopApp {
         signOutBtn.addActionListener(e -> recordAttendance("sign_out", "Sign Out"));
         buttonsPanel.add(signOutBtn);
 
-        JButton historyBtn = new JButton(TranslationHelper.translateText("MY HISTORY"));
+        historyBtn = new JButton("MY HISTORY");
         historyBtn.setBackground(new Color(156, 39, 176));
         historyBtn.setForeground(Color.WHITE);
         historyBtn.setFont(new Font("Arial", Font.BOLD, 16));
@@ -740,7 +802,7 @@ public class DesktopApp {
         logArea = new JTextArea();
         logArea.setEditable(false);
         JScrollPane scrollPane = new JScrollPane(logArea);
-        scrollPane.setBorder(new TitledBorder(TranslationHelper.translateText("Activity Log")));
+        scrollPane.setBorder(new TitledBorder("Activity Log"));
         scrollPane.setPreferredSize(new Dimension(0, 150));
         panel.add(scrollPane, BorderLayout.SOUTH);
 
@@ -753,6 +815,7 @@ public class DesktopApp {
             String time = LocalDateTime.now(UAE_TIMEZONE).format(DateTimeFormatter.ofPattern("HH:mm:ss"));
             logArea.append("[" + time + "] " + TranslationHelper.translateText("Welcome ") + currentFullName + "\n");
         }
+        translateAllUI();
     }
 
     private JPanel createUsersPanel(boolean canCreateAdmin) {
@@ -761,26 +824,26 @@ public class DesktopApp {
         JToolBar toolBar = new JToolBar();
         toolBar.setFloatable(false);
 
-        JButton createUserBtn = new JButton(TranslationHelper.translateText("CREATE USER"));
+        createUserBtn = new JButton("CREATE USER");
         createUserBtn.addActionListener(e -> showCreateUserDialog("user"));
         toolBar.add(createUserBtn);
 
         if (canCreateAdmin) {
-            JButton createAdminBtn = new JButton(TranslationHelper.translateText("CREATE ADMIN"));
+            createAdminBtn = new JButton("CREATE ADMIN");
             createAdminBtn.addActionListener(e -> showCreateUserDialog("admin"));
             toolBar.add(createAdminBtn);
         }
 
         toolBar.addSeparator();
 
-        JButton refreshBtn = new JButton(TranslationHelper.translateText("REFRESH"));
+        refreshBtn = new JButton("REFRESH");
         refreshBtn.addActionListener(e -> {
             loadUsers();
             loadAllHistoryTables();
         });
         toolBar.add(refreshBtn);
 
-        JButton deleteBtn = new JButton(TranslationHelper.translateText("DELETE SELECTED"));
+        deleteBtn = new JButton("DELETE SELECTED");
         deleteBtn.setBackground(new Color(244, 67, 54));
         deleteBtn.setForeground(Color.WHITE);
         deleteBtn.addActionListener(e -> deleteSelectedUser());
@@ -788,14 +851,7 @@ public class DesktopApp {
 
         panel.add(toolBar, BorderLayout.NORTH);
 
-        String[] columns = {
-            TranslationHelper.translateText("ID"), 
-            TranslationHelper.translateText("Full Name"), 
-            TranslationHelper.translateText("Username"), 
-            TranslationHelper.translateText("Role"), 
-            TranslationHelper.translateText("Department"), 
-            TranslationHelper.translateText("Created At")
-        };
+        String[] columns = {"ID", "Full Name", "Username", "Role", "Department", "Created At"};
         userTableModel = new DefaultTableModel(columns, 0);
         userTable = new JTable(userTableModel);
         userTable.setFillsViewportHeight(true);
@@ -807,7 +863,7 @@ public class DesktopApp {
     }
 
     private void loadUsers() {
-        statusLabel.setText(TranslationHelper.translateText("Loading users..."));
+        if (statusLabel != null) statusLabel.setText(TranslationHelper.translateText("Loading users..."));
 
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             private Object[][] userData;
@@ -844,10 +900,11 @@ public class DesktopApp {
                         for (Object[] row : userData) {
                             userTableModel.addRow(row);
                         }
-                        statusLabel.setText(TranslationHelper.translateText("Ready") + " - " + userData.length + " " + TranslationHelper.translateText("users loaded"));
+                        if (statusLabel != null) statusLabel.setText(TranslationHelper.translateText("Ready") + " - " + userData.length + " " + TranslationHelper.translateText("users loaded"));
                     } else {
-                        statusLabel.setText(TranslationHelper.translateText("Ready") + " - " + TranslationHelper.translateText("No users found"));
+                        if (statusLabel != null) statusLabel.setText(TranslationHelper.translateText("Ready") + " - " + TranslationHelper.translateText("No users found"));
                     }
+                    refreshTableHeaders();
                 }
             }
         };
@@ -867,7 +924,7 @@ public class DesktopApp {
         int confirm = JOptionPane.showConfirmDialog(frame, TranslationHelper.translateText("Delete user: ") + username + "?", TranslationHelper.translateText("Confirm"), JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            statusLabel.setText(TranslationHelper.translateText("Deleting user..."));
+            if (statusLabel != null) statusLabel.setText(TranslationHelper.translateText("Deleting user..."));
 
             SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
                 @Override
@@ -882,7 +939,7 @@ public class DesktopApp {
 
                 @Override
                 protected void done() {
-                    statusLabel.setText(TranslationHelper.translateText("Ready"));
+                    if (statusLabel != null) statusLabel.setText(TranslationHelper.translateText("Ready"));
                     JOptionPane.showMessageDialog(frame, TranslationHelper.translateText("User deleted successfully"), TranslationHelper.translateText("Success"), JOptionPane.INFORMATION_MESSAGE);
                     loadUsers();
                 }
@@ -895,20 +952,12 @@ public class DesktopApp {
         JPanel panel = new JPanel(new BorderLayout());
 
         JToolBar toolBar = new JToolBar();
-        JButton refreshBtn = new JButton(TranslationHelper.translateText("REFRESH"));
+        JButton refreshBtn = new JButton("REFRESH");
         refreshBtn.addActionListener(e -> loadHistoryTable(department));
         toolBar.add(refreshBtn);
         panel.add(toolBar, BorderLayout.NORTH);
 
-        String[] columns = {
-            TranslationHelper.translateText("ID"), 
-            TranslationHelper.translateText("Username"), 
-            TranslationHelper.translateText("Full Name"), 
-            TranslationHelper.translateText("Department"), 
-            TranslationHelper.translateText("Event"), 
-            TranslationHelper.translateText("Location"), 
-            TranslationHelper.translateText("Timestamp")
-        };
+        String[] columns = {"ID", "Username", "Full Name", "Department", "Event", "Location", "Timestamp"};
         historyTableModel = new DefaultTableModel(columns, 0);
         historyTable = new JTable(historyTableModel);
         historyTable.setFillsViewportHeight(true);
@@ -920,7 +969,7 @@ public class DesktopApp {
     }
 
     private void loadHistoryTable(String department) {
-        statusLabel.setText(TranslationHelper.translateText("Loading history..."));
+        if (statusLabel != null) statusLabel.setText(TranslationHelper.translateText("Loading history..."));
 
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             private Object[][] historyData;
@@ -963,10 +1012,11 @@ public class DesktopApp {
                         for (Object[] row : historyData) {
                             historyTableModel.addRow(row);
                         }
-                        statusLabel.setText(TranslationHelper.translateText("Ready") + " - " + historyData.length + " " + TranslationHelper.translateText("records loaded for ") + deptName);
+                        if (statusLabel != null) statusLabel.setText(TranslationHelper.translateText("Ready") + " - " + historyData.length + " " + TranslationHelper.translateText("records loaded for ") + deptName);
                     } else {
-                        statusLabel.setText(TranslationHelper.translateText("Ready") + " - " + TranslationHelper.translateText("No records found for ") + deptName);
+                        if (statusLabel != null) statusLabel.setText(TranslationHelper.translateText("Ready") + " - " + TranslationHelper.translateText("No records found for ") + deptName);
                     }
+                    refreshTableHeaders();
                 }
             }
         };
@@ -1037,7 +1087,7 @@ public class DesktopApp {
     }
 
     private void createUser(String fullName, String username, String password, String role, String department, JDialog dialog) {
-        statusLabel.setText(TranslationHelper.translateText("Creating user..."));
+        if (statusLabel != null) statusLabel.setText(TranslationHelper.translateText("Creating user..."));
 
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
             private boolean success = false;
@@ -1060,7 +1110,7 @@ public class DesktopApp {
 
             @Override
             protected void done() {
-                statusLabel.setText(TranslationHelper.translateText("Ready"));
+                if (statusLabel != null) statusLabel.setText(TranslationHelper.translateText("Ready"));
                 if (success) {
                     JOptionPane.showMessageDialog(dialog, message, TranslationHelper.translateText("Success"), JOptionPane.INFORMATION_MESSAGE);
                     dialog.dispose();
@@ -1113,7 +1163,7 @@ public class DesktopApp {
                     }
                     JOptionPane.showMessageDialog(frame, TranslationHelper.translateText("Failed: ") + message, TranslationHelper.translateText("Error"), JOptionPane.ERROR_MESSAGE);
                 }
-                statusLabel.setText(TranslationHelper.translateText("Ready"));
+                if (statusLabel != null) statusLabel.setText(TranslationHelper.translateText("Ready"));
             }
         };
         worker.execute();
@@ -1182,7 +1232,7 @@ public class DesktopApp {
             usernameField.setText("");
             passwordField.setText("");
             cardLayout.show(mainPanel, "login");
-            statusLabel.setText(TranslationHelper.translateText("Ready"));
+            if (statusLabel != null) statusLabel.setText(TranslationHelper.translateText("Ready"));
         }
     }
 
