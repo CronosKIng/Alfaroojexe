@@ -35,17 +35,12 @@ public class DesktopApp {
     private DefaultTableModel historyTableModel;
     private JLabel statusLabel;
     
-    // Language selector components
     private JComboBox<String> languageCombo;
     private JLabel languageLabel;
-    
-    // Password toggle
     private JCheckBox showPasswordCheckbox;
-    
-    // Logo
     private JLabel logoLabel;
+    private JButton toggleEyeBtn;
     
-    // All 20 languages
     private final String[] LANGUAGES = {
         "English", "Kiswahili", "Arabic", "French", "Spanish", 
         "German", "Italian", "Portuguese", "Russian", "Chinese",
@@ -84,10 +79,8 @@ public class DesktopApp {
     }
     
     private void translateUI() {
-        // Translate frame title
         frame.setTitle(TranslationHelper.translateText("AL FAROOJ AL SHAMI - Time Table System"));
         
-        // Translate menu
         JMenuBar menuBar = frame.getJMenuBar();
         if (menuBar != null) {
             JMenu fileMenu = menuBar.getMenu(0);
@@ -98,10 +91,8 @@ public class DesktopApp {
             if (helpMenu != null) helpMenu.setText(TranslationHelper.translateText("Help"));
         }
         
-        // Translate login panel if visible
         if (languageLabel != null) languageLabel.setText(TranslationHelper.translateText("Select Language:"));
         
-        // Refresh current panel
         if (currentRole != null) {
             if (currentRole.equals("super_admin")) {
                 refreshSuperAdminPanel();
@@ -121,7 +112,6 @@ public class DesktopApp {
             TranslationHelper.setLanguage(langCode);
             translateUI();
             
-            // Also translate login screen components
             Component[] components = mainPanel.getComponents();
             for (Component comp : components) {
                 if (comp instanceof JPanel) {
@@ -205,7 +195,6 @@ public class DesktopApp {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(new BorderLayout());
 
-        // Menu Bar
         JMenuBar menuBar = new JMenuBar();
 
         JMenu fileMenu = new JMenu("File");
@@ -280,8 +269,9 @@ public class DesktopApp {
             logoLabel = new JLabel(new ImageIcon(img));
             panel.add(logoLabel, gbc);
         } catch (Exception e) {
-            logoLabel = new JLabel("🏪");
-            logoLabel.setFont(new Font("Arial", Font.PLAIN, 50));
+            logoLabel = new JLabel("[Logo]");
+            logoLabel.setFont(new Font("Arial", Font.PLAIN, 30));
+            logoLabel.setForeground(Color.WHITE);
             panel.add(logoLabel, gbc);
         }
 
@@ -349,7 +339,7 @@ public class DesktopApp {
                 if (new String(passwordField.getPassword()).equals(TranslationHelper.translateText("Enter password"))) {
                     passwordField.setText("");
                     passwordField.setForeground(Color.BLACK);
-                    passwordField.setEchoChar('•');
+                    passwordField.setEchoChar('*');
                 }
             }
             public void focusLost(FocusEvent e) {
@@ -361,19 +351,18 @@ public class DesktopApp {
             }
         });
         
-        // Toggle eye button for password
-        JButton toggleEyeBtn = new JButton("👁");
-        toggleEyeBtn.setFont(new Font("Arial", Font.PLAIN, 12));
+        toggleEyeBtn = new JButton("[O]");
+        toggleEyeBtn.setFont(new Font("Arial", Font.PLAIN, 10));
         toggleEyeBtn.setPreferredSize(new Dimension(40, 25));
         toggleEyeBtn.setBackground(new Color(33, 150, 243));
         toggleEyeBtn.setBorder(BorderFactory.createEmptyBorder());
         toggleEyeBtn.addActionListener(e -> {
             if (passwordField.getEchoChar() == 0) {
-                passwordField.setEchoChar('•');
-                toggleEyeBtn.setText("👁");
+                passwordField.setEchoChar('*');
+                toggleEyeBtn.setText("[*]");
             } else {
                 passwordField.setEchoChar((char)0);
-                toggleEyeBtn.setText("👁‍🗨");
+                toggleEyeBtn.setText("[O]");
             }
         });
         
@@ -385,7 +374,6 @@ public class DesktopApp {
         gbc.gridy = 6;
         gbc.gridwidth = 2;
         
-        // Language selector
         JPanel langPanel = new JPanel(new FlowLayout());
         langPanel.setBackground(new Color(33, 150, 243));
         languageLabel = new JLabel(TranslationHelper.translateText("Select Language:"));
@@ -425,7 +413,6 @@ public class DesktopApp {
         String username = usernameField.getText().trim();
         String password = new String(passwordField.getPassword()).trim();
 
-        // Check if placeholder text
         if (username.equals(TranslationHelper.translateText("Enter username")) || username.isEmpty()) {
             JOptionPane.showMessageDialog(frame, 
                 TranslationHelper.translateText("Please enter username"), 
