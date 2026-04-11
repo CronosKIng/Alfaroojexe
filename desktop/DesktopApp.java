@@ -360,7 +360,7 @@ public class DesktopApp {
                 Image img = logoIcon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
                 logoLabel = new JLabel(new ImageIcon(img));
             } else {
-                logoLabel = new JLabel("ALF");
+                logoLabel = new JLabel("");
                 logoLabel.setFont(new Font("Arial", Font.BOLD, 40));
                 logoLabel.setForeground(Color.WHITE);
             }
