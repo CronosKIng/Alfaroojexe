@@ -298,11 +298,12 @@ public class DesktopApp {
         panel.add(langPanel, gbc);
 
         loginButton = new JButton("LOGIN");
-        loginButton.setBackground(new Color(0, 120, 0)); // Dark green for contrast
-        loginButton.setForeground(Color.WHITE);
-        loginButton.setFont(new Font("Segoe UI", Font.BOLD, 16));
-        loginButton.setPreferredSize(new Dimension(250, 45));
+        loginButton.setBackground(new Color(255, 193, 7)); // Njano kali // Dark green for contrast
+        loginButton.setForeground(Color.BLACK); // Text nyeusi
+        loginButton.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        loginButton.setPreferredSize(new Dimension(250, 50));
         loginButton.setFocusPainted(false);
+        loginButton.setOpaque(true);
         loginButton.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.WHITE, 2),
                 BorderFactory.createEmptyBorder(10, 30, 10, 30)
