@@ -18,8 +18,6 @@ public class DesktopApp {
     private JPanel mainPanel;
     private CardLayout cardLayout;
     private String currentUser = null;
-    private String currentRole = null;
-    private String currentDepartment = null;
     private int currentUserId = 0;
     private String currentFullName = null;
     
@@ -28,13 +26,11 @@ public class DesktopApp {
     
     private JTextField usernameField;
     private JPasswordField passwordField;
-    private JTextArea logArea;
     private JTable userTable;
     private DefaultTableModel userTableModel;
     private JTable historyTable;
     private DefaultTableModel historyTableModel;
     private JLabel statusLabel;
-    private JComboBox<String> languageCombo;
     private String currentLanguage = "en";
     
     public static void main(String[] args) {
@@ -60,7 +56,7 @@ public class DesktopApp {
     }
     
     private void initialize() {
-        frame = new JFrame("AL FAROOJ AL SHAMI - Time Table System");
+        frame = new JFrame("AL FAROOJ AL SHAMI - Super Admin Dashboard");
         frame.setBounds(100, 100, 1300, 850);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.getContentPane().setLayout(new BorderLayout());
@@ -99,8 +95,6 @@ public class DesktopApp {
         
         mainPanel.add(createLoginPanel(), "login");
         mainPanel.add(createSuperAdminPanel(), "super_admin");
-        mainPanel.add(createAdminPanel(), "admin");
-        mainPanel.add(createUserPanel(), "user");
         
         frame.getContentPane().add(mainPanel, BorderLayout.CENTER);
         
@@ -118,7 +112,7 @@ public class DesktopApp {
     
     private void showAboutDialog() {
         JOptionPane.showMessageDialog(frame,
-            "AL FAROOJ AL SHAMI Time Table System\nVersion 2.0\n\nFeatures:\n- Super Admin Dashboard\n- Admin Dashboard\n- User Dashboard\n- Location Validation\n- Attendance Tracking\n- User Management\n- Multi-department Support\n- Multi-language Support",
+            "AL FAROOJ AL SHAMI Time Table System\nVersion 3.0\n\nSuper Admin Dashboard\n\nFeatures:\n- Manage Users (Create/Delete)\n- Create Admin\n- Today Attendance\n- All History\n- Kitchen History\n- Waiter History\n- Delivery History\n- Manager History\n- Multi-language Support",
             "About", JOptionPane.INFORMATION_MESSAGE);
     }
     
@@ -136,7 +130,7 @@ public class DesktopApp {
         gbc.gridwidth = 2;
         panel.add(titleLabel, gbc);
         
-        JLabel subtitleLabel = new JLabel("TIME TABLE SYSTEM");
+        JLabel subtitleLabel = new JLabel("SUPER ADMIN DASHBOARD");
         subtitleLabel.setFont(new Font("Arial", Font.PLAIN, 18));
         subtitleLabel.setForeground(Color.WHITE);
         gbc.gridy = 1;
@@ -200,7 +194,6 @@ public class DesktopApp {
             private String role = "";
             private String fullName = "";
             private int userId = 0;
-            private String department = "";
             private String errorMsg = "";
             
             @Override
@@ -210,16 +203,20 @@ public class DesktopApp {
                     String response = sendPostRequest(API_URL + "login", json);
                     JsonObject jsonResponse = JsonParser.parseString(response).getAsJsonObject();
                     if (jsonResponse.get("success").getAsBoolean()) {
-                        success = true;
                         JsonObject user = jsonResponse.getAsJsonObject("user");
                         role = user.get("role").getAsString();
+                        
+                        // SUPER ADMIN ONLY
+                        if (!role.equals("super_admin")) {
+                            errorMsg = "Access denied. Super Admin only!";
+                            return null;
+                        }
+                        
+                        success = true;
                         fullName = user.get("full_name").getAsString();
                         userId = user.get("id").getAsInt();
-                        department = user.has("department") ? user.get("department").getAsString() : "";
                         currentUser = username;
-                        currentRole = role;
                         currentUserId = userId;
-                        currentDepartment = department;
                         currentFullName = fullName;
                     } else {
                         errorMsg = jsonResponse.get("message").getAsString();
@@ -235,16 +232,8 @@ public class DesktopApp {
                 statusLabel.setText("Ready");
                 if (success) {
                     JOptionPane.showMessageDialog(frame, "Welcome " + fullName + "!", "Success", JOptionPane.INFORMATION_MESSAGE);
-                    if (role.equals("super_admin")) {
-                        cardLayout.show(mainPanel, "super_admin");
-                        loadUsers();
-                    } else if (role.equals("admin")) {
-                        cardLayout.show(mainPanel, "admin");
-                        loadUsers();
-                    } else {
-                        cardLayout.show(mainPanel, "user");
-                        initUserPanel();
-                    }
+                    cardLayout.show(mainPanel, "super_admin");
+                    loadUsers();
                 } else {
                     JOptionPane.showMessageDialog(frame, "Login failed: " + errorMsg, "Error", JOptionPane.ERROR_MESSAGE);
                 }
@@ -280,7 +269,8 @@ public class DesktopApp {
         
         JTabbedPane tabbedPane = new JTabbedPane();
         tabbedPane.addTab("MANAGE USERS", createUsersPanel(true));
-        tabbedPane.addTab("ALL HISTORY", createHistoryPanel(null));
+        tabbedPane.addTab("TODAY ATTENDANCE", createHistoryPanel("today"));
+        tabbedPane.addTab("ALL HISTORY", createHistoryPanel("all"));
         tabbedPane.addTab("KITCHEN HISTORY", createHistoryPanel("kitchen"));
         tabbedPane.addTab("WAITER HISTORY", createHistoryPanel("waiter"));
         tabbedPane.addTab("DELIVERY HISTORY", createHistoryPanel("delivery"));
@@ -289,120 +279,6 @@ public class DesktopApp {
         panel.add(tabbedPane, BorderLayout.CENTER);
         
         return panel;
-    }
-    
-    private JPanel createAdminPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setBackground(new Color(46, 125, 50));
-        topPanel.setPreferredSize(new Dimension(0, 60));
-        
-        JLabel titleLabel = new JLabel("ADMIN DASHBOARD", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setForeground(Color.WHITE);
-        topPanel.add(titleLabel, BorderLayout.CENTER);
-        
-        JPanel userInfoPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        userInfoPanel.setBackground(new Color(46, 125, 50));
-        JLabel userLabel = new JLabel("Logged in as: " + currentFullName);
-        userLabel.setForeground(Color.WHITE);
-        userInfoPanel.add(userLabel);
-        
-        JButton logoutBtn = new JButton("LOGOUT");
-        logoutBtn.addActionListener(e -> logout());
-        userInfoPanel.add(logoutBtn);
-        
-        topPanel.add(userInfoPanel, BorderLayout.EAST);
-        panel.add(topPanel, BorderLayout.NORTH);
-        
-        JTabbedPane tabbedPane = new JTabbedPane();
-        tabbedPane.addTab("MANAGE USERS", createUsersPanel(false));
-        tabbedPane.addTab("ALL HISTORY", createHistoryPanel(null));
-        tabbedPane.addTab("KITCHEN HISTORY", createHistoryPanel("kitchen"));
-        tabbedPane.addTab("WAITER HISTORY", createHistoryPanel("waiter"));
-        tabbedPane.addTab("DELIVERY HISTORY", createHistoryPanel("delivery"));
-        tabbedPane.addTab("MANAGER HISTORY", createHistoryPanel("manager"));
-        
-        panel.add(tabbedPane, BorderLayout.CENTER);
-        
-        return panel;
-    }
-    
-    private JPanel createUserPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.setBackground(new Color(230, 81, 0));
-        topPanel.setPreferredSize(new Dimension(0, 60));
-        
-        JLabel titleLabel = new JLabel("USER DASHBOARD", SwingConstants.CENTER);
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setForeground(Color.WHITE);
-        topPanel.add(titleLabel, BorderLayout.CENTER);
-        
-        JPanel userInfoPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        userInfoPanel.setBackground(new Color(230, 81, 0));
-        JLabel userLabel = new JLabel("User: " + currentFullName);
-        userLabel.setForeground(Color.WHITE);
-        userInfoPanel.add(userLabel);
-        
-        JButton logoutBtn = new JButton("LOGOUT");
-        logoutBtn.addActionListener(e -> logout());
-        userInfoPanel.add(logoutBtn);
-        
-        topPanel.add(userInfoPanel, BorderLayout.EAST);
-        panel.add(topPanel, BorderLayout.NORTH);
-        
-        JPanel centerPanel = new JPanel(new GridBagLayout());
-        centerPanel.setBackground(new Color(245, 245, 245));
-        
-        JPanel buttonsPanel = new JPanel(new GridLayout(2, 2, 20, 20));
-        buttonsPanel.setBorder(new EmptyBorder(30, 50, 30, 50));
-        
-        JButton signInBtn = new JButton("SIGN IN");
-        signInBtn.setBackground(new Color(76, 175, 80));
-        signInBtn.setForeground(Color.WHITE);
-        signInBtn.setFont(new Font("Arial", Font.BOLD, 16));
-        signInBtn.setPreferredSize(new Dimension(180, 70));
-        signInBtn.addActionListener(e -> recordAttendance("sign_in", "Sign In"));
-        buttonsPanel.add(signInBtn);
-        
-        JButton signOutBtn = new JButton("SIGN OUT");
-        signOutBtn.setBackground(new Color(244, 67, 54));
-        signOutBtn.setForeground(Color.WHITE);
-        signOutBtn.setFont(new Font("Arial", Font.BOLD, 16));
-        signOutBtn.setPreferredSize(new Dimension(180, 70));
-        signOutBtn.addActionListener(e -> recordAttendance("sign_out", "Sign Out"));
-        buttonsPanel.add(signOutBtn);
-        
-        JButton historyBtn = new JButton("HISTORY");
-        historyBtn.setBackground(new Color(156, 39, 176));
-        historyBtn.setForeground(Color.WHITE);
-        historyBtn.setFont(new Font("Arial", Font.BOLD, 16));
-        historyBtn.setPreferredSize(new Dimension(180, 70));
-        historyBtn.addActionListener(e -> showUserHistory());
-        buttonsPanel.add(historyBtn);
-        
-        centerPanel.add(buttonsPanel);
-        panel.add(centerPanel, BorderLayout.CENTER);
-        
-        logArea = new JTextArea();
-        logArea.setEditable(false);
-        JScrollPane scrollPane = new JScrollPane(logArea);
-        scrollPane.setBorder(new TitledBorder("Activity Log"));
-        scrollPane.setPreferredSize(new Dimension(0, 150));
-        panel.add(scrollPane, BorderLayout.SOUTH);
-        
-        return panel;
-    }
-    
-    private void initUserPanel() {
-        if (logArea != null) {
-            logArea.setText("");
-            String time = LocalDateTime.now(UAE_TIMEZONE).format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-            logArea.append("[" + time + "] Welcome " + currentFullName + "\n");
-        }
     }
     
     private JPanel createUsersPanel(boolean canCreateAdmin) {
@@ -529,27 +405,27 @@ public class DesktopApp {
         }
     }
     
-    private JPanel createHistoryPanel(String department) {
+    private JPanel createHistoryPanel(String filterType) {
         JPanel panel = new JPanel(new BorderLayout());
         
         JToolBar toolBar = new JToolBar();
         JButton refreshBtn = new JButton("REFRESH");
-        refreshBtn.addActionListener(e -> loadHistoryTable(department));
+        refreshBtn.addActionListener(e -> loadHistoryTable(filterType));
         toolBar.add(refreshBtn);
         panel.add(toolBar, BorderLayout.NORTH);
         
-        String[] columns = {"ID", "Username", "Full Name", "Department", "Event", "Location", "Timestamp"};
+        String[] columns = {"ID", "Username", "Full Name", "Department", "Event", "Comment", "Order Type", "Location", "Timestamp"};
         historyTableModel = new DefaultTableModel(columns, 0);
         historyTable = new JTable(historyTableModel);
         historyTable.setFillsViewportHeight(true);
         panel.add(new JScrollPane(historyTable), BorderLayout.CENTER);
         
-        loadHistoryTable(department);
+        loadHistoryTable(filterType);
         
         return panel;
     }
     
-    private void loadHistoryTable(String department) {
+    private void loadHistoryTable(String filterType) {
         statusLabel.setText("Loading history...");
         
         SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
@@ -558,24 +434,31 @@ public class DesktopApp {
             @Override
             protected Void doInBackground() {
                 try {
-                    String url = API_URL + "attendance_logs";
-                    if (department != null) {
-                        url += "?department=" + department;
+                    String url;
+                    if (filterType.equals("today")) {
+                        url = API_URL + "today_attendance";
+                    } else if (filterType.equals("all")) {
+                        url = API_URL + "attendance_logs";
+                    } else {
+                        url = API_URL + "attendance_logs?department=" + filterType;
                     }
+                    
                     String response = sendGetRequest(url);
                     JsonObject jsonResponse = JsonParser.parseString(response).getAsJsonObject();
                     if (jsonResponse.get("success").getAsBoolean()) {
                         JsonArray logs = jsonResponse.getAsJsonArray("logs");
-                        historyData = new Object[logs.size()][7];
+                        historyData = new Object[logs.size()][9];
                         for (int i = 0; i < logs.size(); i++) {
                             JsonObject log = logs.get(i).getAsJsonObject();
                             historyData[i][0] = log.get("id").getAsInt();
                             historyData[i][1] = log.get("username").getAsString();
                             historyData[i][2] = log.get("full_name").getAsString();
-                            historyData[i][3] = log.get("department").getAsString();
+                            historyData[i][3] = log.has("department") ? log.get("department").getAsString() : "";
                             historyData[i][4] = log.get("event_name").getAsString();
-                            historyData[i][5] = log.get("location").getAsString();
-                            historyData[i][6] = log.get("timestamp").getAsString();
+                            historyData[i][5] = log.has("comment") && !log.get("comment").isJsonNull() ? log.get("comment").getAsString() : "";
+                            historyData[i][6] = log.has("order_type") && !log.get("order_type").isJsonNull() ? log.get("order_type").getAsString() : "";
+                            historyData[i][7] = log.has("location") ? log.get("location").getAsString() : "";
+                            historyData[i][8] = log.get("timestamp").getAsString();
                         }
                     }
                 } catch (Exception e) {
@@ -594,7 +477,7 @@ public class DesktopApp {
                         }
                     }
                 }
-                statusLabel.setText("Ready");
+                statusLabel.setText("Ready - " + (historyData != null ? historyData.length : 0) + " records");
             }
         };
         worker.execute();
@@ -700,104 +583,11 @@ public class DesktopApp {
         worker.execute();
     }
     
-    private void recordAttendance(String eventType, String eventName) {
-        double latitude = 25.3065744;
-        double longitude = 55.4573264;
-        String location = "Al Farooj Al Shami Restaurant - Sharjah, UAE";
-        
-        String json = String.format("{\"user_id\":%d,\"username\":\"%s\",\"full_name\":\"%s\",\"department\":\"%s\",\"event_type\":\"%s\",\"event_name\":\"%s\",\"latitude\":%f,\"longitude\":%f,\"location\":\"%s\"}",
-            currentUserId, currentUser, currentFullName, currentDepartment, eventType, eventName, latitude, longitude, location);
-        
-        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-            private boolean success = false;
-            private String message = "";
-            
-            @Override
-            protected Void doInBackground() {
-                try {
-                    String response = sendPostRequest(API_URL + "attendance", json);
-                    JsonObject jsonResponse = JsonParser.parseString(response).getAsJsonObject();
-                    success = jsonResponse.get("success").getAsBoolean();
-                    message = jsonResponse.get("message").getAsString();
-                } catch (Exception e) {
-                    message = e.getMessage();
-                }
-                return null;
-            }
-            
-            @Override
-            protected void done() {
-                statusLabel.setText("Ready");
-                String time = LocalDateTime.now(UAE_TIMEZONE).format(DateTimeFormatter.ofPattern("HH:mm:ss"));
-                if (success) {
-                    if (logArea != null) {
-                        logArea.append("[" + time + "] " + eventName + " recorded\n");
-                    }
-                    JOptionPane.showMessageDialog(frame, message, "Success", JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    if (logArea != null) {
-                        logArea.append("[" + time + "] Failed: " + message + "\n");
-                    }
-                    JOptionPane.showMessageDialog(frame, "Failed: " + message, "Error", JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        };
-        worker.execute();
-    }
-    
-    private void showUserHistory() {
-        JDialog historyDialog = new JDialog(frame, "My Attendance History", true);
-        historyDialog.setSize(800, 500);
-        historyDialog.setLocationRelativeTo(frame);
-        
-        String[] columns = {"ID", "Event", "Department", "Location", "Timestamp"};
-        DefaultTableModel model = new DefaultTableModel(columns, 0);
-        JTable table = new JTable(model);
-        table.setFillsViewportHeight(true);
-        
-        SwingWorker<Void, Void> worker = new SwingWorker<Void, Void>() {
-            @Override
-            protected Void doInBackground() {
-                try {
-                    String response = sendGetRequest(API_URL + "attendance_logs");
-                    JsonObject jsonResponse = JsonParser.parseString(response).getAsJsonObject();
-                    if (jsonResponse.get("success").getAsBoolean()) {
-                        JsonArray logs = jsonResponse.getAsJsonArray("logs");
-                        for (int i = 0; i < logs.size(); i++) {
-                            JsonObject log = logs.get(i).getAsJsonObject();
-                            if (log.get("username").getAsString().equals(currentUser)) {
-                                model.addRow(new Object[]{
-                                    log.get("id").getAsInt(),
-                                    log.get("event_name").getAsString(),
-                                    log.get("department").getAsString(),
-                                    log.get("location").getAsString(),
-                                    log.get("timestamp").getAsString()
-                                });
-                            }
-                        }
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-            
-            @Override
-            protected void done() {
-                historyDialog.add(new JScrollPane(table));
-                historyDialog.setVisible(true);
-            }
-        };
-        worker.execute();
-    }
-    
     private void logout() {
         int confirm = JOptionPane.showConfirmDialog(frame, "Logout?", "Confirm", JOptionPane.YES_NO_OPTION);
         if (confirm == JOptionPane.YES_OPTION) {
             currentUser = null;
-            currentRole = null;
             currentUserId = 0;
-            currentDepartment = null;
             currentFullName = null;
             usernameField.setText("");
             passwordField.setText("");
