@@ -273,7 +273,7 @@ public class DesktopApp {
         ));
         passwordField.setEchoChar('*');
         
-        toggleEyeBtn = new JToggleButton("👁");
+        toggleEyeBtn = new JToggleButton("Show");
         toggleEyeBtn.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         toggleEyeBtn.setPreferredSize(new Dimension(45, 35));
         toggleEyeBtn.setBackground(Color.WHITE);
@@ -281,7 +281,7 @@ public class DesktopApp {
         toggleEyeBtn.addActionListener(e -> {
             passwordVisible = !passwordVisible;
             passwordField.setEchoChar(passwordVisible ? (char) 0 : '*');
-            toggleEyeBtn.setText(passwordVisible ? "🔒" : "👁");
+            toggleEyeBtn.setText(passwordVisible ? "Hide" : "Show");
         });
         
         passwordPanel.add(passwordField, BorderLayout.CENTER);
@@ -760,7 +760,7 @@ public class DesktopApp {
             passwordField.setText("");
             passwordVisible = false;
             passwordField.setEchoChar('*');
-            toggleEyeBtn.setText("👁");
+            toggleEyeBtn.setText("Show");
             cardLayout.show(mainPanel, "login");
             statusLabel.setText(translate("Ready"));
         }
