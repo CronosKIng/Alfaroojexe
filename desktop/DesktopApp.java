@@ -135,7 +135,7 @@ public class DesktopApp {
         if (passLabel != null) passLabel.setText(translate("Password:"));
         if (langLabel != null) langLabel.setText(translate("Select Language:"));
         if (loginButton != null) loginButton.setText(translate("LOGIN"));
-        if (statusLabel != null) if (statusLabel != null) statusLabel.setText(translate("Ready"));
+        if (statusLabel != null) statusLabel.setText(translate("Ready"));
         
         if (usernameField != null) {
             usernameField.putClientProperty("placeholder", translate("Enter your username"));
